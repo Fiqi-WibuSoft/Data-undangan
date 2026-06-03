@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Undangan Digital</title>
+    <style>
+        :root {
+            --primary-bg: #0f1d3a;     /* Biru tua pekat untuk background utama web */
+            --card-bg: #1a2f56;        /* Biru navy medium untuk container utama */
+            --item-bg: #233e72;        /* Biru soft untuk item daftar undangan */
+            --accent-color: #4bacf5;   /* Biru muda cerah untuk tombol aktif, ikon, dan aksen */
+            --text-light: #ffffff;     /* Putih bersih untuk teks nama */
+            --text-muted: #9bb3da;     /* Biru pudar untuk deskripsi dan placeholder */
+            --search-bg: #0f1d3a;      /* Biru gelap untuk input pencarian */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-light);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #162a50, #081226);
+            color: #fff;
+            text-align: center;
+            padding: 35px 20px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            color: var(--accent-color); /* Judul menggunakan warna biru muda */
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+
+        .tabs-container {
+            display: flex;
+            overflow-x: auto;
+            background: #0b162c;
+            padding: 12px;
+            gap: 8px;
+            scrollbar-width: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            background: var(--item-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 20px;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: #0f1d3a;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(75, 172, 245, 0.4);
+            border-color: var(--accent-color);
+        }
+
+        .search-container {
+            padding: 15px 20px;
+            background: var(--card-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: var(--search-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #fff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: #536f9c;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(75, 172, 245, 0.2);
+        }
+
+        .list-container {
+            padding: 10px 20px 30px 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: var(--card-bg);
+        }
+
+        .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .list-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .guest-group {
+            display: none;
+        }
+
+        .guest-group.active {
+            display: block;
+        }
+
+        .group-title {
+            font-size: 15px;
+            color: var(--accent-color); /* Judul RT menggunakan warna biru muda */
+            margin: 20px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .guest-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--item-bg);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+        }
+
+        .guest-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(75, 172, 245, 0.4);
+        }
+
+        .guest-avatar {
+            width: 34px;
+            height: 34px;
+            background-color: rgba(75, 172, 245, 0.15);
+            color: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 14px;
+            flex-shrink: 0;
+            border: 1px solid rgba(75, 172, 245, 0.3);
+        }
+
+        .guest-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: none;
+        }
+
+        /* --- STYLING POP-UP NOTIFIKASI TEMA BIRU --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 14, 26, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .popup-box {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 85%;
+            max-width: 380px;
+            padding: 32px 24px 24px 24px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            position: relative;
+            text-align: center;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .popup-overlay.show .popup-box {
+            transform: scale(1);
+        }
+
+        .popup-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 26px;
+            font-weight: 300;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .popup-close-btn:hover {
+            color: #fff;
+        }
+
+        .popup-icon {
+            width: 55px;
+            height: 55px;
+            background: rgba(75, 172, 245, 0.15);
+            color: var(--accent-color);
+            font-size: 26px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 18px auto;
+            border: 1px solid rgba(75, 172, 245, 0.3);
+        }
+
+        .popup-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .popup-action-btn {
+            background-color: var(--accent-color);
+            color: #0f1d3a;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            width: 100%;
+        }
+
+        .popup-action-btn:hover {
+            background-color: #69beff;
+        }
+        
+        .popup-action-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+<!-- POPUP NOTIFIKASI -->
+<div class="popup-overlay" id="popupNotice">
+    <div class="popup-box">
+        <span class="popup-close-btn" onclick="closePopup()">&times;</span>
+        <div class="popup-icon">ℹ️</div>
+        <div class="popup-text">Data ini hanya bersifat sementara</div>
+        <button class="popup-action-btn" onclick="closePopup()">Mengerti</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>DAFTAR UNDANGAN</h1>
+        <p>Manajemen Data & Lokasi RT</p>
+    </div>
+
+    <div class="tabs-container" id="tabsBox">
+        <button class="tab-btn active" onclick="filterTab('all')">Semua</button>
+        <button class="tab-btn" onclick="filterTab('rt1')">RT 1</button>
+        <button class="tab-btn" onclick="filterTab('rt2')">RT 2</button>
+        <button class="tab-btn" onclick="filterTab('rt3')">RT 3</button>
+        <button class="tab-btn" onclick="filterTab('rt5')">RT 5</button>
+        <button class="tab-btn" onclick="filterTab('rt6')">RT 6</button>
+        <button class="tab-btn" onclick="filterTab('rt7')">RT 7</button>
+        <button class="tab-btn" onclick="filterTab('bersole')">Bersole</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Cari nama undangan..." onkeyup="searchGuest()">
+    </div>
+
+    <div class="list-container" id="listContainer">
+        
+        <!-- RT 1 -->
+        <div class="guest-group active" id="rt1">
+            <div class="group-title">RT 1</div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">1. Bpk Yono sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">2. Bpk Ajat</div></div>
+            <div class="guest-item"><div class="guest-avatar">BB</div><div class="guest-name">3. Bpk  Bahrun</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">4. Bpk Awin</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">5. Bpk Sito</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">6. Bpk Sarikun</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">7. Bpk Nisom</div></div>
+            <div class="guest-item"><div class="guest-avatar">BM</div><div class="guest-name">8. Bpk Margo</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">9. Bpk Sito Gundul</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">10. Bpk Ari</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">11. Bpk Dartim</div></div>
+            <div class="guest-item"><div class="guest-avatar">BR</div><div class="guest-name">12. Bpk Ratun</div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">13. Bpk Tato</div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">14. Bpk Tasikun</div></div>
+            <div class="guest-item"><div class="guest-avatar">BI</div><div class="guest-name">15. Bpk irwan</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">16. Bpk Nano </div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">17. Bpk Putra</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">18. Bpk Yanto Fitri</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">19. Bpk Aswan</div></div>
+            <div class="guest-item"><div class="guest-avatar">BC</div><div class="guest-name">20. Bpk Cipto</div></div>
+        </div>
+
+        <!-- RT 2 -->
+        <div class="guest-group active" id="rt2">
+            <div class="group-title">RT 2</div>
+            <div class="guest-item"><div class="guest-avatar">PS</div><div class="guest-name">1. Pak Slamet</div></div>
+            <div class="guest-item"><div class="guest-avatar">PK</div><div class="guest-name">2. Pak Kirno</div></div>
+            <div class="guest-item"><div class="guest-avatar">PS</div><div class="guest-name">3. Pak Sukir</div></div>
+            <div class="guest-item"><div class="guest-avatar">PM</div><div class="guest-name">4. Pak Mardan</div></div>
+            <div class="guest-item"><div class="guest-avatar">PK</div><div class="guest-name">5. Pak Kartam</div></div>
+            <div class="guest-item"><div class="guest-avatar">PP</div><div class="guest-name">6. Pak Puji</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">7. Bu Narto</div></div>
+            <div class="guest-item"><div class="guest-avatar">BW</div><div class="guest-name">8. Bu Wati</div></div>
+            <div class="guest-item"><div class="guest-avatar">PD</div><div class="guest-name">9. Pak Darno</div></div>
+            <div class="guest-item"><div class="guest-avatar">PS</div><div class="guest-name">10. Pak Sidi</div></div>
+            <div class="guest-item"><div class="guest-avatar">PS</div><div class="guest-name">11. Pak Saeful</div></div>
+            <div class="guest-item"><div class="guest-avatar">PN</div><div class="guest-name">12. Pak Narsim</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">13. Ibu Satiwen</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">14. Ibu Sul</div></div>
+            <div class="guest-item"><div class="guest-avatar">PA</div><div class="guest-name">15. Pak Andi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PN</div><div class="guest-name">16. Pak Naryo Sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PW</div><div class="guest-name">17. Pak Windardi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IN</div><div class="guest-name">18. Ibu Novi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PA</div><div class="guest-name">19. Pak Agus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PM</div><div class="guest-name">20. Pak Minto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PK</div><div class="guest-name">21. Pak Kirno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">PW</div><div class="guest-name">22. Pak Warno</div></div>
+        </div>
+
+        <!-- RT 3 -->
+        <div class="guest-group active" id="rt3">
+            <div class="group-title">RT 3</div>
+            <div class="guest-item"><div class="guest-avatar">IA</div><div class="guest-name">1. Ibu Asih sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IK</div><div class="guest-name">2. Ibu Khotimah sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IM</div><div class="guest-name">3. Ibu Mus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IO</div><div class="guest-name">4. Ibu Oki sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">5. Ibu Suwarni sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IR</div><div class="guest-name">6. Ibu Rasih sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IA</div><div class="guest-name">7. Ibu Armi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">8. Ibu Sugiarto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">9. Bpk Sudiro sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">10. Ibu Sumarni sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">11. Bpk Sholeh sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">12. Bpk  Prayit sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IT</div><div class="guest-name">13. Ibu Tuti sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">14. Bpk Aris sekalian </div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">15. Bpk Sito sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BM</div><div class="guest-name">16. Bpk Misno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IR</div><div class="guest-name">17. Ibu Rohati sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">18. Bpk Kowo sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BR</div><div class="guest-name">19. Bpk Rasikin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">20. Bpk Amin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BB</div><div class="guest-name">21. Bpk Bari sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">22. Bpk Yus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BG</div><div class="guest-name">23. Bpk Gunawan sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">24. Bpk Darno sekalian</div></div>
+        </div>
+
+        <!-- RT 5 -->
+        <div class="guest-group active" id="rt5">
+            <div class="group-title">RT 5</div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">1. Bpk Kastam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">2. Bpk Yadi Lor sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">3. Bpk Yadi Kidul sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">4. Bpk Pur sekalian </div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">5. Bpk Taswan sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">6. Bpk Karso sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">7. Bpk Surat sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">8. Bpk Kasdi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">9. Bpk Narko sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">10. Bpk Kinto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">11. Bpk Niswan sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">12. Bpk Dirsun sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">13. Bpk Yayo sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BE</div><div class="guest-name">14. Bpk Eko sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">15. Bpk Sirun sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BU</div><div class="guest-name">16. Bpk Uki sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">17. Bpk Yadi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BH</div><div class="guest-name">18. Bpk Harto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">19. Bpk Kidi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">20. Bpk Darso sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">21. Bpk Kilam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">22. Bpk Sirin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">23. Bpk Nur sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IW</div><div class="guest-name">24. Ibu Warsiti sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">25. Bpk Sugeng sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">26. Ibu Sugeng sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">27. Bpk Karso sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">28. Bpk Kardi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">29. Bpk Poyo sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">30. Bpk Nono sekalian</div></div>
+        </div>
+
+        <!-- RT 6 -->
+        <div class="guest-group active" id="rt6">
+            <div class="group-title">RT 6</div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">1. Bpk Narko</div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">2. Bpk Toro</div></div>
+            <div class="guest-item"><div class="guest-avatar">BM</div><div class="guest-name">3. Bpk Mahmud</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">4. Bpk Kuat</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">5. Bpk Slamet / Mame</div></div>
+            <div class="guest-item"><div class="guest-avatar">BJ</div><div class="guest-name">6. Bpk Jasmin</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">7. Bpk Suem</div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">8. Bpk Tiswan</div></div>
+            <div class="guest-item"><div class="guest-avatar">BM</div><div class="guest-name">9. Bpk Momon</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">10. Bpk Andri</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">11. Bpk Sairun</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">12. Bpk Puji</div></div>
+            <div class="guest-item"><div class="guest-avatar">BM</div><div class="guest-name">13. Bpk Muji</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">14. Bpk Aji sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">15. Ibuu Supri sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BW</div><div class="guest-name">16. Bpk Wito</div></div>
+            <div class="guest-item"><div class="guest-avatar">ID</div><div class="guest-name">17. Ibu Dewi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BT</div><div class="guest-name">18. Bpk Tono sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">19. Bpk Narsim</div></div>
+        </div>
+
+        <!-- RT 7 -->
+        <div class="guest-group active" id="rt7">
+            <div class="group-title">RT 7</div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">1. Bpk Kadim sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">2. Bpk Anto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">3. Bpk Karno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">4. Bpk Kirin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">5. Bpk Kako sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">6. Bpk Poniman sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IK</div><div class="guest-name">7. Ibu Karsih sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">8. Ibu Sholimah sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">9. Bpk Karso sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">IS</div><div class="guest-name">10. Ibu Sari sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BC</div><div class="guest-name">11. Bpk Candra sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">12. Bpk Sapin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">13. Bpk Narsidi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BH</div><div class="guest-name">14. Bpk Hirin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BI</div><div class="guest-name">15. Bpk Ipin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">16. Bpk Yatno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BP</div><div class="guest-name">17. Bpk Parno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">18. Bpk Narko sekalian</div></div>
+        </div>
+
+        <!-- Bersole -->
+        <div class="guest-group active" id="bersole">
+            <div class="group-title">Bersole</div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">1. Bpk Slamet sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">2. Bpk Agus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">3. Bpk Nirsan sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">4. Bpk Suprih sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">5. Bpk Agus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">6. Bpk Kirno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BY</div><div class="guest-name">7. Bpk Yadi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BN</div><div class="guest-name">8. Bpk Narkim sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">9. Bpk Sarno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">10. Bpk Samsu sekalian </div></div>
+            <div class="guest-item"><div class="guest-avatar">BR</div><div class="guest-name">11. Bpk Risam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">12. Bpk Surat sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">13. Bpk Darso sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">14. Bpk Kartam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">15. Bpk Kamto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">16. Bpk Andi sekalian </div></div>
+            <div class="guest-item"><div class="guest-avatar">BW</div><div class="guest-name">17. Bpk Warsono sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">18. Bpk Kardi sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BL</div><div class="guest-name">19. Bpk Lamun sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BU</div><div class="guest-name">20. Bpk Untung sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">21. Bpk Disam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BW</div><div class="guest-name">22. Bpk Warto sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BR</div><div class="guest-name">23. Bpk Rasa sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BD</div><div class="guest-name">24. Bpk Dikin sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BS</div><div class="guest-name">25. Bpk Sirun sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">26. Bpk Kirno sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BK</div><div class="guest-name">27. Bpk Kastam sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BA</div><div class="guest-name">28. Bpk Agus sekalian</div></div>
+            <div class="guest-item"><div class="guest-avatar">BW</div><div class="guest-name">29. Bpk Wandi</div></div>
+        </div>
+
+        <div class="no-data" id="noData">Nama tidak ditemukan</div>
+    </div>
+</div>
+
+<script>
+    // --- FUNGSIONALITAS POP-UP ---
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('popupNotice').classList.add('show');
+        }, 4000); // Muncul otomatis dalam 4 detik
+    });
+
+    function closePopup() {
+        document.getElementById('popupNotice').classList.remove('show');
+    }
+
+    // --- FUNGSIONALITAS NAVIGASI DAN PENCARIAN ---
+    function filterTab(tabId) {
+        document.getElementById('searchInput').value = "";
+        
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        const groups = document.querySelectorAll('.guest-group');
+        const items = document.querySelectorAll('.guest-item');
+        
+        items.forEach(item => item.style.display = 'flex');
+        document.getElementById('noData').style.display = 'none';
+
+        groups.forEach(group => {
+            if (tabId === 'all') {
+                group.classList.add('active');
+            } else {
+                if (group.id === tabId) {
+                    group.classList.add('active');
+                } else {
+                    group.classList.remove('active');
+                }
+            }
+        });
+    }
+
+    function searchGuest() {
+        const input = document.getElementById('searchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.guest-item');
+        const groups = document.querySelectorAll('.guest-group');
+        const noData = document.getElementById('noData');
+        
+        let hasResults = false;
+
+        items.forEach(item => {
+            const name = item.querySelector('.guest-name').textContent.toLowerCase();
+            const parentGroup = item.closest('.guest-group');
+            
+            if (name.includes(input)) {
+                if (parentGroup.classList.contains('active') || document.querySelector('.tab-btn.active').getAttribute('onclick').includes('all')) {
+                    item.style.display = 'flex';
+                    hasResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        groups.forEach(group => {
+            if (input !== "") {
+                const visibleItems = group.querySelectorAll('.guest-item[style="display: flex;"]');
+                const title = group.querySelector('.group-title');
+                if (visibleItems.length === 0) {
+                    title.style.display = 'none';
+                } else {
+                    title.style.display = 'block';
+                }
+            } else {
+                group.querySelector('.group-title').style.display = 'block';
+            }
+        });
+
+        if (!hasResults && input !== "") {
+            noData.style.display = 'block';
+        } else {
+            noData.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
